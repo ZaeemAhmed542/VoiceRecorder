@@ -1,6 +1,6 @@
 {
   "name": "voicerecorder",
-  "version": "1.0.6",
+  "version": "1.0.5",
   "description": "A React component for audio recording",
   "author": "https://github.com/ZaeemAhmed542/",
   "license": "MIT",

@@ -13,13 +13,35 @@ npm install --save voicerecorder
 ## Usage
 
 ```jsx
+
+import React from 'react'
+
+import { useVoiceRecorder } from 'voicerecorder';
+
+
+const Button = () => {
+  const { start, pause, stop } = useVoiceRecorder();
+  
+  return (
+    <div>
+      <button onClick={start}>start</button>
+      <button onClick={stop}>stop</button>
+      <button onClick={pause}>pause</button>
+    </div>
+  )
+}
+ 
+export default Button
+
+----------------------------------------------------------------
+
 import React, { useState } from 'react'
 
 import { VoiceRecorder } from 'voicerecorder'
+import Button from './Button';
 
 
 const App = () => {
-  const [recording, setRecording] = useState(false);
   const [audio, setAudio] = useState('http://alexkatz.me/codepen/music/interlude.mp3');
   const constraints = {
     echoCancellation: true,
@@ -29,22 +51,17 @@ const App = () => {
   const options = {
     audioBitsPerSecond: 128000,
   };
+
   return (
     <div>
       <VoiceRecorder
         options={options}
         constraints={constraints}
         audioUpload={(blob) => {setAudio(URL.createObjectURL(blob))}}
-        status={recording}
-      />
-      {
-        recording ? (
-          <button onClick = {() => setRecording(false)}>STOP</button>
-        ):
-        (
-          <button onClick = {() => setRecording(true)}>START</button>
-        )
-      }
+      >
+        <Button/>
+      </VoiceRecorder>
+      
       <audio src={audio} controls="controls"/>
     </div>
   )
