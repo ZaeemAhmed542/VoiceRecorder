@@ -1,6 +1,7 @@
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var React = _interopDefault(require('react'));
+var React = require('react');
+var React__default = _interopDefault(React);
 
 function _inheritsLoose(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
@@ -51,14 +52,15 @@ var Recorder = function Recorder(constraints, options, upload) {
               };
 
               _this.mediaRecorder.onstop = _this.onStop;
+              _this.mediaRecorder.onPause = _this.onStop;
             });
           }, function () {
-            window.alert("Microphone access Blocked");
+            window.alert('Microphone access Blocked');
           });
 
           if (_temp4 && _temp4.then) return _temp4.then(function () {});
         } else {
-          window.alert("Audio recording APIs not supported by this browser");
+          window.alert('Audio recording APIs not supported by this browser');
         }
       }();
 
@@ -69,20 +71,28 @@ var Recorder = function Recorder(constraints, options, upload) {
   };
 
   this.startRecording = function () {
-    if (_this2.mediaRecorder) {
+    if (_this2.mediaRecorder && _this2.mediaRecorder.state != 'paused') {
       _this2.mediaRecorder.start();
+    } else if (_this2.mediaRecorder) {
+      _this2.mediaRecorder.resume();
     }
   };
 
   this.stopRecording = function () {
-    if (_this2.mediaRecorder && _this2.mediaRecorder.state !== "inactive") {
+    if (_this2.mediaRecorder && _this2.mediaRecorder.state !== 'inactive') {
       _this2.mediaRecorder.stop();
+    }
+  };
+
+  this.pauseRecording = function () {
+    if (_this2.mediaRecorder && _this2.mediaRecorder.state !== 'paused') {
+      _this2.mediaRecorder.pause();
     }
   };
 
   this.onStop = function () {
     var blob = new window.Blob(_this2.chunks, {
-      type: "audio/webm"
+      type: 'audio/webm'
     });
 
     _this2.upload(blob);
@@ -95,6 +105,11 @@ var Recorder = function Recorder(constraints, options, upload) {
   this.upload = upload;
 };
 
+var VoiceRecorderContext = React.createContext({});
+var useVoiceRecorder = function useVoiceRecorder() {
+  var controls = React.useContext(VoiceRecorderContext);
+  return controls;
+};
 var VoiceRecorder = /*#__PURE__*/function (_React$Component) {
   _inheritsLoose(VoiceRecorder, _React$Component);
 
@@ -120,27 +135,33 @@ var VoiceRecorder = /*#__PURE__*/function (_React$Component) {
       }
     };
 
-    _this.componentDidUpdate = function () {
-      var status = _this.props.status;
-
-      if (status) {
-        _this.recorder.startRecording();
-      } else {
-        _this.recorder.stopRecording();
-      }
-    };
-
     return _this;
   }
 
   var _proto = VoiceRecorder.prototype;
 
   _proto.render = function render() {
-    return null;
+    var _this2 = this;
+
+    var controls = {
+      start: function start() {
+        return _this2.recorder.startRecording();
+      },
+      pause: function pause() {
+        return _this2.recorder.pauseRecording();
+      },
+      stop: function stop() {
+        return _this2.recorder.stopRecording();
+      }
+    };
+    return /*#__PURE__*/React__default.createElement(VoiceRecorderContext.Provider, {
+      value: controls
+    }, this.props.children);
   };
 
   return VoiceRecorder;
-}(React.Component);
+}(React__default.Component);
 
 exports.VoiceRecorder = VoiceRecorder;
+exports.useVoiceRecorder = useVoiceRecorder;
 //# sourceMappingURL=index.js.map
