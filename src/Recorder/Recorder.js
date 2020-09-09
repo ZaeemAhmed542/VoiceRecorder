@@ -1,42 +1,23 @@
 export class Recorder {
-  constructor(constraints, options, upload) {
-    this.constraints = constraints || []
+  constructor(options, upload, stream) {
     this.options = options || []
     this.upload = upload
+    this.stream = stream
   }
 
   setUpRecorder = async () => {
-    navigator.getUserMedia =
-      navigator.getUserMedia ||
-      navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia ||
-      navigator.webkitGetUserMedia
-    if (navigator.getUserMedia && window.MediaRecorder) {
-      this.chunks = []
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: this.constraints
-        })
-        this.mediaRecorder = new window.MediaRecorder(stream, this.options)
-        this.mediaRecorder.ondataavailable = (e) => {
-          this.chunks.push(e.data)
-        }
-        this.mediaRecorder.onstop = this.onStop
-        this.mediaRecorder.onPause = this.onStop
-      } catch (err) {
-        window.alert('Microphone access Blocked')
-      }
-    } else {
-      window.alert('Audio recording APIs not supported by this browser')
+    this.chunks = []
+    this.mediaRecorder = new window.MediaRecorder(this.stream, this.options)
+    this.mediaRecorder.ondataavailable = (e) => {
+      this.chunks.push(e.data)
     }
+    this.mediaRecorder.onstop = this.onStop
   }
 
   startRecording = () => {
     if (this.mediaRecorder && this.mediaRecorder.state != 'paused') {
       this.mediaRecorder.start()
-    }
-    else if(this.mediaRecorder) {
+    } else if (this.mediaRecorder) {
       this.mediaRecorder.resume()
     }
   }
@@ -48,7 +29,7 @@ export class Recorder {
   }
 
   pauseRecording = () => {
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'paused') {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.pause()
     }
   }

@@ -6,62 +6,22 @@ function _inheritsLoose(subClass, superClass) {
   subClass.__proto__ = superClass;
 }
 
-// A type of promise-like that resolves synchronously and supports only one observer
-
-const _iteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.iterator || (Symbol.iterator = Symbol("Symbol.iterator"))) : "@@iterator";
-
-const _asyncIteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.asyncIterator || (Symbol.asyncIterator = Symbol("Symbol.asyncIterator"))) : "@@asyncIterator";
-
-// Asynchronously call a function and send errors to recovery continuation
-function _catch(body, recover) {
-	try {
-		var result = body();
-	} catch(e) {
-		return recover(e);
-	}
-	if (result && result.then) {
-		return result.then(void 0, recover);
-	}
-	return result;
-}
-
-var Recorder = function Recorder(constraints, options, upload) {
+var Recorder = function Recorder(options, upload, stream) {
   var _this2 = this;
 
   var _this = this;
 
   this.setUpRecorder = function () {
     try {
-      navigator.getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.webkitGetUserMedia;
+      _this.chunks = [];
+      _this.mediaRecorder = new window.MediaRecorder(_this.stream, _this.options);
 
-      var _temp3 = function () {
-        if (navigator.getUserMedia && window.MediaRecorder) {
-          _this.chunks = [];
+      _this.mediaRecorder.ondataavailable = function (e) {
+        _this.chunks.push(e.data);
+      };
 
-          var _temp4 = _catch(function () {
-            return Promise.resolve(navigator.mediaDevices.getUserMedia({
-              audio: _this.constraints
-            })).then(function (stream) {
-              _this.mediaRecorder = new window.MediaRecorder(stream, _this.options);
-
-              _this.mediaRecorder.ondataavailable = function (e) {
-                _this.chunks.push(e.data);
-              };
-
-              _this.mediaRecorder.onstop = _this.onStop;
-              _this.mediaRecorder.onPause = _this.onStop;
-            });
-          }, function () {
-            window.alert('Microphone access Blocked');
-          });
-
-          if (_temp4 && _temp4.then) return _temp4.then(function () {});
-        } else {
-          window.alert('Audio recording APIs not supported by this browser');
-        }
-      }();
-
-      return Promise.resolve(_temp3 && _temp3.then ? _temp3.then(function () {}) : void 0);
+      _this.mediaRecorder.onstop = _this.onStop;
+      return Promise.resolve();
     } catch (e) {
       return Promise.reject(e);
     }
@@ -82,7 +42,7 @@ var Recorder = function Recorder(constraints, options, upload) {
   };
 
   this.pauseRecording = function () {
-    if (_this2.mediaRecorder && _this2.mediaRecorder.state !== 'paused') {
+    if (_this2.mediaRecorder && _this2.mediaRecorder.state !== 'inactive') {
       _this2.mediaRecorder.pause();
     }
   };
@@ -97,9 +57,9 @@ var Recorder = function Recorder(constraints, options, upload) {
     _this2.chunks = [];
   };
 
-  this.constraints = constraints || [];
   this.options = options || [];
   this.upload = upload;
+  this.stream = stream;
 };
 
 var VoiceRecorderContext = createContext({});
@@ -123,9 +83,9 @@ var VoiceRecorder = /*#__PURE__*/function (_React$Component) {
       try {
         var _this$props = _this.props,
             audioUpload = _this$props.audioUpload,
-            constraints = _this$props.constraints,
-            options = _this$props.options;
-        _this.recorder = new Recorder(constraints, options, audioUpload);
+            options = _this$props.options,
+            stream = _this$props.stream;
+        _this.recorder = new Recorder(options, audioUpload, stream);
         return Promise.resolve(_this.recorder.setUpRecorder()).then(function () {});
       } catch (e) {
         return Promise.reject(e);
